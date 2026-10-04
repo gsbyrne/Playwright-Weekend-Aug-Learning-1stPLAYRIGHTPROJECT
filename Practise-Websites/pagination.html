@@ -1,0 +1,432 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DataGrid Playground — Web Table</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f4f6f9;
+    --surface: #ffffff;
+    --surface-2: #f8f9fb;
+    --border: #e2e5ec;
+    --text: #1a1d26;
+    --text-dim: #6b7280;
+    --accent: #2563eb;
+    --accent-light: rgba(37, 99, 235, 0.07);
+    --accent-glow: rgba(37, 99, 235, 0.15);
+    --red: #dc2626;
+    --red-light: rgba(220, 38, 38, 0.06);
+    --green: #16a34a;
+    --green-light: rgba(22, 163, 74, 0.07);
+    --yellow: #d97706;
+    --yellow-light: rgba(217, 119, 6, 0.07);
+    --row-hover: rgba(37, 99, 235, 0.03);
+    --checkbox-size: 18px;
+    --radius: 8px;
+    --radius-lg: 12px;
+    --shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+    --shadow-lg: 0 4px 16px rgba(0,0,0,0.08);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; min-height: 100vh; padding: 40px 20px; }
+  .container { max-width: 960px; margin: 0 auto; }
+  .header { margin-bottom: 28px; }
+  .header h1 { font-family: 'Space Mono', monospace; font-size: 26px; font-weight: 700; color: var(--accent); letter-spacing: -0.5px; margin-bottom: 6px; }
+  .header p { color: var(--text-dim); font-size: 14px; }
+  .header p span { color: var(--accent); font-family: 'Space Mono', monospace; font-weight: 700; font-size: 13px; }
+  .add-form { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+  .add-form input { flex: 1; min-width: 120px; padding: 10px 14px; background: var(--surface); border: 1.5px solid var(--border); border-radius: var(--radius); color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 14px; transition: border-color 0.2s, box-shadow 0.2s; outline: none; }
+  .add-form input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-light); }
+  .add-form input::placeholder { color: var(--text-dim); opacity: 0.55; }
+  .btn-add { padding: 10px 22px; background: var(--accent); color: #fff; border: none; border-radius: var(--radius); font-family: 'Space Mono', monospace; font-size: 13px; font-weight: 700; cursor: pointer; transition: transform 0.15s, box-shadow 0.2s; white-space: nowrap; }
+  .btn-add:hover { transform: translateY(-1px); box-shadow: 0 4px 16px var(--accent-glow); }
+  .btn-add:active { transform: translateY(0); }
+  .toolbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; padding: 0 2px; flex-wrap: wrap; gap: 8px; }
+  .toolbar-left { display: flex; align-items: center; gap: 12px; }
+  .selected-count { font-size: 13px; color: var(--text-dim); font-family: 'Space Mono', monospace; }
+  .selected-count strong { color: var(--accent); }
+  .btn-delete { padding: 6px 14px; background: var(--red-light); color: var(--red); border: 1.5px solid transparent; border-radius: var(--radius); font-family: 'Space Mono', monospace; font-size: 12px; font-weight: 700; cursor: pointer; transition: all 0.2s; display: none; }
+  .btn-delete.visible { display: inline-block; }
+  .btn-delete:hover { border-color: var(--red); background: rgba(220, 38, 38, 0.1); }
+  .search-box { padding: 7px 12px; background: var(--surface); border: 1.5px solid var(--border); border-radius: var(--radius); color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 13px; width: 200px; outline: none; transition: border-color 0.2s, box-shadow 0.2s; }
+  .search-box:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-light); }
+  .search-box::placeholder { color: var(--text-dim); opacity: 0.5; }
+  .table-wrapper { background: var(--surface); border: 1.5px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; margin-bottom: 16px; box-shadow: var(--shadow); }
+  table { width: 100%; border-collapse: collapse; }
+  thead th { background: var(--surface-2); padding: 12px 16px; text-align: left; font-family: 'Space Mono', monospace; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.2px; color: var(--text-dim); border-bottom: 1.5px solid var(--border); user-select: none; position: sticky; top: 0; z-index: 2; }
+  thead th.sortable { cursor: pointer; }
+  thead th.sortable:hover { color: var(--accent); }
+  thead th .sort-arrow { margin-left: 4px; opacity: 0.35; font-size: 10px; }
+  thead th.sort-active .sort-arrow { opacity: 1; color: var(--accent); }
+  thead th:first-child { width: 50px; text-align: center; }
+  tbody tr { transition: background 0.15s; animation: rowIn 0.25s ease-out both; }
+  @keyframes rowIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+  tbody tr:hover { background: var(--row-hover); }
+  tbody tr.checked { background: var(--accent-light); }
+  tbody td { padding: 11px 16px; font-size: 14px; border-bottom: 1px solid var(--border); color: var(--text); }
+  tbody td:first-child { text-align: center; }
+  tbody tr:last-child td { border-bottom: none; }
+  .status { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; letter-spacing: 0.3px; }
+  .status.active { background: var(--green-light); color: var(--green); }
+  .status.inactive { background: var(--red-light); color: var(--red); }
+  .status.pending { background: var(--yellow-light); color: var(--yellow); }
+  .cb-wrap { display: inline-flex; align-items: center; justify-content: center; }
+  .cb-wrap input[type="checkbox"] { appearance: none; -webkit-appearance: none; width: var(--checkbox-size); height: var(--checkbox-size); border: 2px solid var(--border); border-radius: 4px; cursor: pointer; transition: all 0.2s; position: relative; background: transparent; }
+  .cb-wrap input[type="checkbox"]:hover { border-color: var(--accent); }
+  .cb-wrap input[type="checkbox"]:checked { background: var(--accent); border-color: var(--accent); }
+  .cb-wrap input[type="checkbox"]:checked::after { content: '✓'; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 12px; font-weight: 700; color: #fff; }
+  .pagination-bar { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; padding: 0 2px; }
+  .page-info { font-size: 13px; color: var(--text-dim); font-family: 'Space Mono', monospace; }
+  .page-info strong { color: var(--text); }
+  .page-buttons { display: flex; gap: 4px; align-items: center; flex-wrap: wrap; }
+  .page-btn { width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; background: var(--surface); border: 1.5px solid var(--border); border-radius: var(--radius); color: var(--text-dim); font-family: 'Space Mono', monospace; font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.2s; }
+  .page-btn:hover:not(.active):not(:disabled) { border-color: var(--accent); color: var(--accent); background: var(--accent-light); }
+  .page-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; box-shadow: 0 2px 10px var(--accent-glow); }
+  .page-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+  .page-btn.arrow { font-size: 16px; }
+  .page-ellipsis { width: 30px; text-align: center; color: var(--text-dim); font-family: 'Space Mono', monospace; font-size: 14px; user-select: none; }
+  .toast { position: fixed; bottom: 30px; right: 30px; padding: 12px 20px; background: var(--surface); border: 1.5px solid var(--accent); border-radius: var(--radius); color: var(--accent); font-family: 'Space Mono', monospace; font-size: 13px; box-shadow: var(--shadow-lg); transform: translateY(80px); opacity: 0; transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1); z-index: 100; }
+  .toast.show { transform: translateY(0); opacity: 1; }
+  @media (max-width: 640px) { body { padding: 20px 12px; } .header h1 { font-size: 22px; } .add-form input { min-width: 80px; } thead th, tbody td { padding: 9px 10px; font-size: 12px; } .search-box { width: 140px; } }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1>⬡ DataGrid Playground</h1>
+    <p>Total Records: <span id="totalCount">100</span> &nbsp;|&nbsp; Rows per page: <span>10</span> &nbsp;|&nbsp; Pages: <span id="pageCount">10</span></p>
+  </div>
+  <div class="add-form">
+    <input type="text" id="inpUsername" placeholder="Username" />
+    <input type="text" id="inpEmail" placeholder="Email" />
+    <input type="text" id="inpCompany" placeholder="Company" />
+    <input type="text" id="inpCity" placeholder="City" />
+    <button class="btn-add" id="btnAdd">+ Add Row</button>
+  </div>
+  <div class="toolbar">
+    <div class="toolbar-left">
+      <span class="selected-count"><strong id="selCount">0</strong> selected</span>
+      <button class="btn-delete" id="btnDelete">Delete Selected</button>
+    </div>
+    <input type="text" class="search-box" id="searchBox" placeholder="Search table…" />
+  </div>
+  <div class="table-wrapper">
+    <table id="dataTable">
+      <thead>
+        <tr>
+          <th><span class="cb-wrap"><input type="checkbox" id="selectAll" /></span></th>
+          <th class="sortable" data-col="username">Username <span class="sort-arrow">▲</span></th>
+          <th class="sortable" data-col="email">Email <span class="sort-arrow">▲</span></th>
+          <th class="sortable" data-col="company">Company <span class="sort-arrow">▲</span></th>
+          <th class="sortable" data-col="city">City <span class="sort-arrow">▲</span></th>
+          <th class="sortable" data-col="status">Status <span class="sort-arrow">▲</span></th>
+        </tr>
+      </thead>
+      <tbody id="tableBody"></tbody>
+    </table>
+  </div>
+  <div class="pagination-bar">
+    <div class="page-info">Showing <strong id="showStart">1</strong>–<strong id="showEnd">10</strong> of <strong id="showTotal">100</strong></div>
+    <div class="page-buttons" id="pageButtons"></div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const INITIAL_DATA = [
+  { id:1,   username:"john_doe",       email:"john@gmail.com",           company:"TechNova",      city:"Mumbai",     status:"active" },
+  { id:2,   username:"jane_smith",     email:"jane.smith@yahoo.com",     company:"ByteForge",     city:"Delhi",      status:"active" },
+  { id:3,   username:"alex_morgan",    email:"alex.m@outlook.com",       company:"Quantum Labs",  city:"Bangalore",  status:"pending" },
+  { id:4,   username:"sam_wilson",     email:"sam.w@proton.me",          company:"DataSphere",    city:"Hyderabad",  status:"active" },
+  { id:5,   username:"taylor_lee",     email:"taylor@gmail.com",         company:"CloudNine",     city:"Dubai",      status:"inactive" },
+  { id:6,   username:"john_doe",       email:"johndoe2@yahoo.com",       company:"NexGen",        city:"Austin",     status:"active" },
+  { id:7,   username:"jordan_chen",    email:"jordan.c@gmail.com",       company:"AlphaWave",     city:"London",     status:"active" },
+  { id:8,   username:"casey_brown",    email:"casey.b@outlook.com",      company:"CyberPulse",    city:"Berlin",     status:"pending" },
+  { id:9,   username:"jane_smith",     email:"janesmith3@proton.me",     company:"InnoCore",      city:"Tokyo",      status:"active" },
+  { id:10,  username:"riley_garcia",   email:"riley.g@gmail.com",        company:"SkyBridge",     city:"Singapore",  status:"inactive" },
+
+  { id:11,  username:"morgan_clark",   email:"morgan.c@yahoo.com",       company:"NetVault",      city:"Toronto",    status:"active" },
+  { id:12,  username:"avery_hall",     email:"avery.h@gmail.com",        company:"CodeHive",      city:"Sydney",     status:"active" },
+  { id:13,  username:"john_doe",       email:"john.doe3@outlook.com",    company:"ZeroStack",     city:"Paris",      status:"pending" },
+  { id:14,  username:"drew_patel",     email:"drew.p@proton.me",         company:"BrightPath",    city:"Amsterdam",  status:"active" },
+  { id:15,  username:"blake_jones",    email:"blake.j@gmail.com",        company:"SwiftLogic",    city:"Stockholm",  status:"inactive" },
+  { id:16,  username:"taylor_lee",     email:"taylor.lee2@yahoo.com",    company:"TechNova",      city:"Mumbai",     status:"active" },
+  { id:17,  username:"quinn_davis",    email:"quinn.d@outlook.com",      company:"ByteForge",     city:"Delhi",      status:"active" },
+  { id:18,  username:"skyler_white",   email:"skyler.w@gmail.com",       company:"Quantum Labs",  city:"Bangalore",  status:"pending" },
+  { id:19,  username:"charlie_kim",    email:"charlie.k@proton.me",      company:"DataSphere",    city:"Hyderabad",  status:"active" },
+  { id:20,  username:"jane_smith",     email:"jane.s20@gmail.com",       company:"CloudNine",     city:"Dubai",      status:"active" },
+
+  { id:21,  username:"pat_murphy",     email:"pat.m@yahoo.com",          company:"NexGen",        city:"Austin",     status:"inactive" },
+  { id:22,  username:"reese_kumar",    email:"reese.k@gmail.com",        company:"AlphaWave",     city:"London",     status:"active" },
+  { id:23,  username:"logan_wright",   email:"logan.w@outlook.com",      company:"CyberPulse",    city:"Berlin",     status:"active" },
+  { id:24,  username:"alex_morgan",    email:"alex.morgan2@proton.me",   company:"InnoCore",      city:"Tokyo",      status:"pending" },
+  { id:25,  username:"harper_shah",    email:"harper.s@gmail.com",       company:"SkyBridge",     city:"Singapore",  status:"active" },
+  { id:26,  username:"jesse_adams",    email:"jesse.a@yahoo.com",        company:"NetVault",      city:"Toronto",    status:"active" },
+  { id:27,  username:"sam_wilson",     email:"sam.wilson2@gmail.com",    company:"CodeHive",      city:"Sydney",     status:"inactive" },
+  { id:28,  username:"frankie_ross",   email:"frankie.r@outlook.com",    company:"ZeroStack",     city:"Paris",      status:"active" },
+  { id:29,  username:"emerson_li",     email:"emerson.l@proton.me",      company:"BrightPath",    city:"Amsterdam",  status:"pending" },
+  { id:30,  username:"john_doe",       email:"johnd30@gmail.com",        company:"SwiftLogic",    city:"Stockholm",  status:"active" },
+
+  { id:31,  username:"dakota_west",    email:"dakota.w@yahoo.com",       company:"TechNova",      city:"Mumbai",     status:"active" },
+  { id:32,  username:"sawyer_nova",    email:"sawyer.n@gmail.com",       company:"ByteForge",     city:"Delhi",      status:"inactive" },
+  { id:33,  username:"peyton_cole",    email:"peyton.c@outlook.com",     company:"Quantum Labs",  city:"Bangalore",  status:"active" },
+  { id:34,  username:"cameron_ray",    email:"cameron.r@proton.me",      company:"DataSphere",    city:"Hyderabad",  status:"active" },
+  { id:35,  username:"taylor_lee",     email:"tlee35@gmail.com",         company:"CloudNine",     city:"Dubai",      status:"pending" },
+  { id:36,  username:"devon_cruz",     email:"devon.c@yahoo.com",        company:"NexGen",        city:"Austin",     status:"active" },
+  { id:37,  username:"ellis_rao",      email:"ellis.r@gmail.com",        company:"AlphaWave",     city:"London",     status:"active" },
+  { id:38,  username:"finley_park",    email:"finley.p@outlook.com",     company:"CyberPulse",    city:"Berlin",     status:"inactive" },
+  { id:39,  username:"hayden_stone",   email:"hayden.s@proton.me",       company:"InnoCore",      city:"Tokyo",      status:"active" },
+  { id:40,  username:"alex_morgan",    email:"alexm40@gmail.com",        company:"SkyBridge",     city:"Singapore",  status:"pending" },
+
+  { id:41,  username:"john_doe",       email:"jdoe41@yahoo.com",         company:"NetVault",      city:"Toronto",    status:"active" },
+  { id:42,  username:"riley_garcia",   email:"riley.g42@gmail.com",      company:"CodeHive",      city:"Sydney",     status:"active" },
+  { id:43,  username:"morgan_clark",   email:"morgan.c43@outlook.com",   company:"ZeroStack",     city:"Paris",      status:"inactive" },
+  { id:44,  username:"avery_hall",     email:"avery.h44@proton.me",      company:"BrightPath",    city:"Amsterdam",  status:"active" },
+  { id:45,  username:"sam_wilson",     email:"samw45@gmail.com",         company:"SwiftLogic",    city:"Stockholm",  status:"pending" },
+  { id:46,  username:"drew_patel",     email:"drew.p46@yahoo.com",       company:"TechNova",      city:"Mumbai",     status:"active" },
+  { id:47,  username:"blake_jones",    email:"blake.j47@gmail.com",      company:"ByteForge",     city:"Delhi",      status:"active" },
+  { id:48,  username:"quinn_davis",    email:"quinn.d48@outlook.com",    company:"Quantum Labs",  city:"Bangalore",  status:"inactive" },
+  { id:49,  username:"jane_smith",     email:"jsmith49@proton.me",       company:"DataSphere",    city:"Hyderabad",  status:"active" },
+  { id:50,  username:"skyler_white",   email:"skyler.w50@gmail.com",     company:"CloudNine",     city:"Dubai",      status:"active" },
+
+  { id:51,  username:"charlie_kim",    email:"charlie.k51@yahoo.com",    company:"NexGen",        city:"Austin",     status:"pending" },
+  { id:52,  username:"pat_murphy",     email:"pat.m52@gmail.com",        company:"AlphaWave",     city:"London",     status:"active" },
+  { id:53,  username:"reese_kumar",    email:"reese.k53@outlook.com",    company:"CyberPulse",    city:"Berlin",     status:"active" },
+  { id:54,  username:"logan_wright",   email:"logan.w54@proton.me",      company:"InnoCore",      city:"Tokyo",      status:"inactive" },
+  { id:55,  username:"harper_shah",    email:"harper.s55@gmail.com",     company:"SkyBridge",     city:"Singapore",  status:"active" },
+  { id:56,  username:"john_doe",       email:"johndoe56@yahoo.com",      company:"NetVault",      city:"Toronto",    status:"active" },
+  { id:57,  username:"jesse_adams",    email:"jesse.a57@gmail.com",      company:"CodeHive",      city:"Sydney",     status:"pending" },
+  { id:58,  username:"frankie_ross",   email:"frankie.r58@outlook.com",  company:"ZeroStack",     city:"Paris",      status:"active" },
+  { id:59,  username:"emerson_li",     email:"emerson.l59@proton.me",    company:"BrightPath",    city:"Amsterdam",  status:"active" },
+  { id:60,  username:"taylor_lee",     email:"tlee60@gmail.com",         company:"SwiftLogic",    city:"Stockholm",  status:"inactive" },
+
+  { id:61,  username:"dakota_west",    email:"dakota.w61@yahoo.com",     company:"TechNova",      city:"Mumbai",     status:"active" },
+  { id:62,  username:"sawyer_nova",    email:"sawyer.n62@gmail.com",     company:"ByteForge",     city:"Delhi",      status:"active" },
+  { id:63,  username:"alex_morgan",    email:"alexm63@outlook.com",      company:"Quantum Labs",  city:"Bangalore",  status:"pending" },
+  { id:64,  username:"cameron_ray",    email:"cameron.r64@proton.me",    company:"DataSphere",    city:"Hyderabad",  status:"active" },
+  { id:65,  username:"devon_cruz",     email:"devon.c65@gmail.com",      company:"CloudNine",     city:"Dubai",      status:"active" },
+  { id:66,  username:"sam_wilson",     email:"samw66@yahoo.com",         company:"NexGen",        city:"Austin",     status:"inactive" },
+  { id:67,  username:"ellis_rao",      email:"ellis.r67@gmail.com",      company:"AlphaWave",     city:"London",     status:"active" },
+  { id:68,  username:"finley_park",    email:"finley.p68@outlook.com",   company:"CyberPulse",    city:"Berlin",     status:"pending" },
+  { id:69,  username:"hayden_stone",   email:"hayden.s69@proton.me",     company:"InnoCore",      city:"Tokyo",      status:"active" },
+  { id:70,  username:"jane_smith",     email:"jsmith70@gmail.com",       company:"SkyBridge",     city:"Singapore",  status:"active" },
+
+  { id:71,  username:"riley_garcia",   email:"riley.g71@yahoo.com",      company:"NetVault",      city:"Toronto",    status:"inactive" },
+  { id:72,  username:"morgan_clark",   email:"morgan.c72@gmail.com",     company:"CodeHive",      city:"Sydney",     status:"active" },
+  { id:73,  username:"john_doe",       email:"jdoe73@outlook.com",       company:"ZeroStack",     city:"Paris",      status:"active" },
+  { id:74,  username:"avery_hall",     email:"avery.h74@proton.me",      company:"BrightPath",    city:"Amsterdam",  status:"pending" },
+  { id:75,  username:"drew_patel",     email:"drew.p75@gmail.com",       company:"SwiftLogic",    city:"Stockholm",  status:"active" },
+  { id:76,  username:"blake_jones",    email:"blake.j76@yahoo.com",      company:"TechNova",      city:"Mumbai",     status:"active" },
+  { id:77,  username:"quinn_davis",    email:"quinn.d77@gmail.com",      company:"ByteForge",     city:"Delhi",      status:"inactive" },
+  { id:78,  username:"skyler_white",   email:"skyler.w78@outlook.com",   company:"Quantum Labs",  city:"Bangalore",  status:"active" },
+  { id:79,  username:"charlie_kim",    email:"charlie.k79@proton.me",    company:"DataSphere",    city:"Hyderabad",  status:"active" },
+  { id:80,  username:"taylor_lee",     email:"tlee80@gmail.com",         company:"CloudNine",     city:"Dubai",      status:"pending" },
+
+  { id:81,  username:"pat_murphy",     email:"pat.m81@yahoo.com",        company:"NexGen",        city:"Austin",     status:"active" },
+  { id:82,  username:"alex_morgan",    email:"alexm82@gmail.com",        company:"AlphaWave",     city:"London",     status:"active" },
+  { id:83,  username:"reese_kumar",    email:"reese.k83@outlook.com",    company:"CyberPulse",    city:"Berlin",     status:"inactive" },
+  { id:84,  username:"logan_wright",   email:"logan.w84@proton.me",      company:"InnoCore",      city:"Tokyo",      status:"active" },
+  { id:85,  username:"harper_shah",    email:"harper.s85@gmail.com",     company:"SkyBridge",     city:"Singapore",  status:"pending" },
+  { id:86,  username:"sam_wilson",     email:"samw86@yahoo.com",         company:"NetVault",      city:"Toronto",    status:"active" },
+  { id:87,  username:"jesse_adams",    email:"jesse.a87@gmail.com",      company:"CodeHive",      city:"Sydney",     status:"active" },
+  { id:88,  username:"jane_smith",     email:"jsmith88@outlook.com",     company:"ZeroStack",     city:"Paris",      status:"inactive" },
+  { id:89,  username:"frankie_ross",   email:"frankie.r89@proton.me",    company:"BrightPath",    city:"Amsterdam",  status:"active" },
+  { id:90,  username:"john_doe",       email:"jdoe90@gmail.com",         company:"SwiftLogic",    city:"Stockholm",  status:"active" },
+
+  { id:91,  username:"emerson_li",     email:"emerson.l91@yahoo.com",    company:"TechNova",      city:"Mumbai",     status:"pending" },
+  { id:92,  username:"dakota_west",    email:"dakota.w92@gmail.com",     company:"ByteForge",     city:"Delhi",      status:"active" },
+  { id:93,  username:"sawyer_nova",    email:"sawyer.n93@outlook.com",   company:"Quantum Labs",  city:"Bangalore",  status:"active" },
+  { id:94,  username:"peyton_cole",    email:"peyton.c94@proton.me",     company:"DataSphere",    city:"Hyderabad",  status:"inactive" },
+  { id:95,  username:"cameron_ray",    email:"cameron.r95@gmail.com",    company:"CloudNine",     city:"Dubai",      status:"active" },
+  { id:96,  username:"alex_morgan",    email:"alexm96@yahoo.com",        company:"NexGen",        city:"Austin",     status:"active" },
+  { id:97,  username:"devon_cruz",     email:"devon.c97@gmail.com",      company:"AlphaWave",     city:"London",     status:"pending" },
+  { id:98,  username:"john_doe",       email:"jdoe98@outlook.com",       company:"CyberPulse",    city:"Berlin",     status:"active" },
+  { id:99,  username:"ellis_rao",      email:"ellis.r99@proton.me",      company:"InnoCore",      city:"Tokyo",      status:"active" },
+  { id:100, username:"jane_smith",     email:"jsmith100@gmail.com",      company:"SkyBridge",     city:"Singapore",  status:"inactive" }
+];
+
+let data = JSON.parse(JSON.stringify(INITIAL_DATA));
+let nextId = 101;
+let currentPage = 1;
+const PER_PAGE = 10;
+let sortCol = null;
+let sortAsc = true;
+let searchTerm = '';
+let selectedIds = new Set();
+
+function getFiltered() {
+  if (!searchTerm) return [...data];
+  const q = searchTerm.toLowerCase();
+  return data.filter(r => r.username.toLowerCase().includes(q) || r.email.toLowerCase().includes(q) || r.company.toLowerCase().includes(q) || r.city.toLowerCase().includes(q) || r.status.toLowerCase().includes(q));
+}
+
+function getSorted(arr) {
+  if (!sortCol) return arr;
+  return arr.sort((a, b) => {
+    const va = a[sortCol].toLowerCase(), vb = b[sortCol].toLowerCase();
+    if (va < vb) return sortAsc ? -1 : 1;
+    if (va > vb) return sortAsc ? 1 : -1;
+    return 0;
+  });
+}
+
+// lightweight update: just toggle row highlight + update counter without rebuilding DOM
+function updateSelectionUI() {
+  document.querySelectorAll('#tableBody tr').forEach(tr => {
+    const cb = tr.querySelector('.row-cb');
+    if (cb) {
+      const id = Number(cb.dataset.id);
+      tr.classList.toggle('checked', selectedIds.has(id));
+    }
+  });
+  const filtered = getSorted(getFiltered());
+  const start = (currentPage - 1) * PER_PAGE;
+  const pageData = filtered.slice(start, start + PER_PAGE);
+  const allCb = document.getElementById('selectAll');
+  const pageIds = pageData.map(r => r.id);
+  const allChecked = pageIds.length > 0 && pageIds.every(id => selectedIds.has(id));
+  const someChecked = pageIds.some(id => selectedIds.has(id));
+  allCb.checked = allChecked;
+  allCb.indeterminate = someChecked && !allChecked;
+  document.getElementById('selCount').textContent = selectedIds.size;
+  document.getElementById('btnDelete').classList.toggle('visible', selectedIds.size > 0);
+}
+
+function render() {
+  const filtered = getSorted(getFiltered());
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PER_PAGE));
+  if (currentPage > totalPages) currentPage = totalPages;
+  const start = (currentPage - 1) * PER_PAGE;
+  const pageData = filtered.slice(start, start + PER_PAGE);
+
+  document.getElementById('totalCount').textContent = data.length;
+  document.getElementById('pageCount').textContent = totalPages;
+  document.getElementById('showStart').textContent = filtered.length ? start + 1 : 0;
+  document.getElementById('showEnd').textContent = Math.min(start + PER_PAGE, filtered.length);
+  document.getElementById('showTotal').textContent = filtered.length;
+
+  const tbody = document.getElementById('tableBody');
+  tbody.innerHTML = '';
+  pageData.forEach((row, idx) => {
+    const tr = document.createElement('tr');
+    tr.style.animationDelay = (idx * 30) + 'ms';
+    if (selectedIds.has(row.id)) tr.classList.add('checked');
+    tr.innerHTML = `
+      <td><span class="cb-wrap"><input type="checkbox" class="row-cb" data-id="${row.id}" ${selectedIds.has(row.id) ? 'checked' : ''} /></span></td>
+      <td>${escHtml(row.username)}</td>
+      <td>${escHtml(row.email)}</td>
+      <td>${escHtml(row.company)}</td>
+      <td>${escHtml(row.city)}</td>
+      <td><span class="status ${row.status}">${cap(row.status)}</span></td>`;
+    tbody.appendChild(tr);
+  });
+
+  updateSelectionUI();
+  renderPagination(totalPages);
+  document.querySelectorAll('thead th.sortable').forEach(th => {
+    const col = th.dataset.col;
+    th.classList.toggle('sort-active', sortCol === col);
+    th.querySelector('.sort-arrow').textContent = (sortCol === col && !sortAsc) ? '▼' : '▲';
+  });
+}
+
+function renderPagination(totalPages) {
+  const cont = document.getElementById('pageButtons');
+  cont.innerHTML = '';
+  const prev = makePageBtn('‹', currentPage > 1, () => { currentPage--; render(); });
+  prev.classList.add('arrow');
+  cont.appendChild(prev);
+  getPageRange(currentPage, totalPages).forEach(p => {
+    if (p === '…') { const el = document.createElement('span'); el.className = 'page-ellipsis'; el.textContent = '…'; cont.appendChild(el); }
+    else { const btn = makePageBtn(p, true, () => { currentPage = p; render(); }); if (p === currentPage) btn.classList.add('active'); cont.appendChild(btn); }
+  });
+  const next = makePageBtn('›', currentPage < totalPages, () => { currentPage++; render(); });
+  next.classList.add('arrow');
+  cont.appendChild(next);
+}
+
+function getPageRange(current, total) {
+  if (total <= 7) return Array.from({length: total}, (_, i) => i + 1);
+  const pages = [1];
+  if (current > 3) pages.push('…');
+  for (let i = Math.max(2, current - 1); i <= Math.min(total - 1, current + 1); i++) pages.push(i);
+  if (current < total - 2) pages.push('…');
+  pages.push(total);
+  return pages;
+}
+
+function makePageBtn(label, enabled, onClick) {
+  const btn = document.createElement('button');
+  btn.className = 'page-btn'; btn.textContent = label; btn.disabled = !enabled;
+  if (enabled) btn.addEventListener('click', onClick);
+  return btn;
+}
+
+function escHtml(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+function cap(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+function toast(msg) {
+  const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show');
+  clearTimeout(toast._timer); toast._timer = setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+// ROW CHECKBOX: do NOT re-render the whole table — just update selectedIds and toggle UI
+document.getElementById('tableBody').addEventListener('change', e => {
+  if (e.target.classList.contains('row-cb')) {
+    const id = Number(e.target.dataset.id);
+    if (e.target.checked) {
+      selectedIds.add(id);
+    } else {
+      selectedIds.delete(id);
+    }
+    updateSelectionUI(); // lightweight — no DOM rebuild
+  }
+});
+
+// SELECT ALL: also lightweight
+document.getElementById('selectAll').addEventListener('change', e => {
+  const filtered = getSorted(getFiltered());
+  const start = (currentPage - 1) * PER_PAGE;
+  filtered.slice(start, start + PER_PAGE).forEach(r => {
+    if (e.target.checked) selectedIds.add(r.id); else selectedIds.delete(r.id);
+  });
+  // update the actual checkboxes in DOM without rebuilding
+  document.querySelectorAll('#tableBody .row-cb').forEach(cb => {
+    const id = Number(cb.dataset.id);
+    cb.checked = selectedIds.has(id);
+  });
+  updateSelectionUI();
+});
+
+document.getElementById('btnDelete').addEventListener('click', () => {
+  const count = selectedIds.size; data = data.filter(r => !selectedIds.has(r.id)); selectedIds.clear(); render(); toast(`Deleted ${count} row${count > 1 ? 's' : ''}`);
+});
+document.querySelectorAll('thead th.sortable').forEach(th => {
+  th.addEventListener('click', () => { const col = th.dataset.col; if (sortCol === col) sortAsc = !sortAsc; else { sortCol = col; sortAsc = true; } render(); });
+});
+document.getElementById('searchBox').addEventListener('input', e => { searchTerm = e.target.value.trim(); currentPage = 1; render(); });
+document.getElementById('btnAdd').addEventListener('click', addRow);
+document.querySelectorAll('.add-form input').forEach(inp => { inp.addEventListener('keydown', e => { if (e.key === 'Enter') addRow(); }); });
+
+function addRow() {
+  const uname = document.getElementById('inpUsername').value.trim();
+  const email = document.getElementById('inpEmail').value.trim();
+  const company = document.getElementById('inpCompany').value.trim();
+  const city = document.getElementById('inpCity').value.trim();
+  if (!uname) { toast('Username is required'); document.getElementById('inpUsername').focus(); return; }
+  data.push({ id: nextId++, username: uname, email: email || uname + '@example.com', company: company || 'N/A', city: city || 'N/A', status: 'active' });
+  currentPage = Math.ceil(getFiltered().length / PER_PAGE);
+  document.getElementById('inpUsername').value = '';
+  document.getElementById('inpEmail').value = '';
+  document.getElementById('inpCompany').value = '';
+  document.getElementById('inpCity').value = '';
+  render();
+  toast(`Added "${uname}" — row #${data.length}`);
+}
+
+render();
+</script>
+</body>
+</html>

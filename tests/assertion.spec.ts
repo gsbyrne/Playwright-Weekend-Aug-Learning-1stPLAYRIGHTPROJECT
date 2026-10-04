@@ -1,9 +1,11 @@
 import { test, expect } from '@playwright/test';
 
 
-
+//when we see HTML tag with 'a' with a HREF it's a hyperlink.
+// how do I click on it?
+// Can use ID, or check if I can use getbylocator.
 test('WhatIsAssertion', async ({ page }) => {
-  await page.goto('https://playground.bondaracademy.com/pages/iot-dashboard');
+  await page.goto('https://blazedemo.com/');
 
 
   

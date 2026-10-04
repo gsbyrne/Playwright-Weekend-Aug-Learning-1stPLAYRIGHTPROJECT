@@ -6,7 +6,7 @@ Whenever I'm writing any CSS, XPath, or Playwright inbuilt
 locator, I write these locators keeping my main goal in mind.
 
 This is a priority of locators:
-1. Playwright built-in locators
+1. Playwright built-in locators ( https://playwright.dev/docs/locators) 
 2. CSS selectors
 3. XPath(Avoid it)
 

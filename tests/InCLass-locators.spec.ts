@@ -55,6 +55,10 @@ A good locator helps Playwright find the correct element quickly and `reliably`.
 A poor locator may work today and fail tomorrow, and that is one of the
 biggest reasons why automation test cases become flaky. 
 
+
+https://playwright.dev/docs/locators
+
+
 */
 
 import { test, expect } from '@playwright/test';
@@ -99,3 +103,50 @@ test('Click the first sign-in button', async ({ page }) => {
     await page.locator('nb-card', {has: page.locator('#inputEmail1')})
 })
 
+
+
+//BUILT IN LOCATORS
+
+/*
+
+https://demo.nopcommerce.com/register
+
+//getByText could hit a load of things.
+page.getByTest('Register') // could give me multiple matches as it will just search for "register"
+
+//But getByRule.
+page.getByRole('Link', {name: 'Register'})  This is much better as how many links will have the name Register.
+
+page.getByRole('heading', {name: 'Register'})  This is much better as how many links will have the name Register.
+
+page.getByRole('button', {name: 'Register'})  This is much better as how many links will have the name Register.
+
+page.getbyPlaceholder('EMail') // there is a placholder in HTML code, and this finds it. is used sometimes.  This is like a grayed out
+                                // text so you know what to type in it. E.g. <email test@test.com> you can see it in the playgroud website.
+
+
+page.getByAltText('playwright logo').click() //if there is an IMG tag... e.g. image. it the "alt" tag is unique you can use that.
+
+page.getByTitke('Issues Count').toHaveText('25 issues') //if there is a unique title
+
+page.getByLabel('Password').fill('secret') //ONly works if the fields are connected.
+                                            //i.e. the label is a child of something else.
+
+
+PRIORITIES:
+
+1. GetByRole
+2. getByLabel
+THEN ANY OR ALL....
+    Placeholder, 
+    alt test, 
+    "test id" //Added specifically for playwright. and if there can be used everywhere.
+    title.
+
+
+LAST PRIORITY: getByText
+                
+
+
+
+*/
