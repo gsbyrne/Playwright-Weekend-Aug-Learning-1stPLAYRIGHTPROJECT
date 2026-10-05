@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, Locator } from '@playwright/test';
 
 test('my first test case',async({page})=>{
     await page.goto("https://playground.bondaracademy.com/pages/iot-dashboard")
@@ -33,14 +33,17 @@ test('my first test case',async({page})=>{
 
 
 test.beforeEach(async ({page})=> {
+
+    const myLogin: Locator = page.getByRole('link',{name: "Log in"})
+
       await page.goto("https://demoblaze.com/index.html")
 
-    await page.getByRole('link',{name: "Log in"}).click()
+    await myLogin.click()
 
     await page.locator('#loginusername').fill('gsbyrne@gmail.com');
     await page.locator('#loginpassword').fill('Mistral277');
     await page.getByRole('button', {name: "Log in"}).click()
-
+await page.pause()
 })
 
 test('demoblaze Check Login',async({page})=>{
@@ -55,11 +58,11 @@ test('demoblaze Check Login',async({page})=>{
     await page.waitForTimeout(5000); // waits 5 seconds
 
     //Expect = |Assertion.
-    await expect(page.getByRole('link', {name: "Log in"}).isHidden)
-    await expect(page.getByRole('link', {name: "Log out"}).isVisible())
+    await expect(page.getByRole('link', {name: 'Log in' })).toBeHidden
+    await expect(page.getByRole('link', {name: "Log out"})).toBeVisible
     await expect(page.getByRole('link', { name: 'Welcome gsbyrne@gmail.com1' }))
 
-    await page.pause()
+    //await page.pause()
 
     //check the box can accept max X chars? use the getattribute
     //console.log(page.locator('#loginusername').getAttribute('maxlength') )
@@ -97,7 +100,7 @@ test('demoblaze Check Login',async({page})=>{
 
 
 test('Click A phone on main page',async({page})=>{
-  await expect(page.getByRole('link', {name: 'Nokia lumia 1520'}))
+  await expect(page.getByRole('link', {name: 'Nokia lumia 1520'}).click())
 
-    //await page.pause()
+    await page.pause()
 })
