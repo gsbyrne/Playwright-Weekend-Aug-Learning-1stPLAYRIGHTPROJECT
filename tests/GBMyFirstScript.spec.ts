@@ -24,15 +24,16 @@ test('my first test case',async({page})=>{
 
  //await page.locator("nb-card").getByRole("button", {name: "Sign in"}).first().click()
 
-    await page.pause()
+    //await page.pause()
 })
 
 /* different locator calls */
 
 // A test to check DEMOBLAZE
 
-test('demoblaze login',async({page})=>{
-    await page.goto("https://demoblaze.com/index.html")
+
+test.beforeEach(async ({page})=> {
+      await page.goto("https://demoblaze.com/index.html")
 
     await page.getByRole('link',{name: "Log in"}).click()
 
@@ -40,16 +41,28 @@ test('demoblaze login',async({page})=>{
     await page.locator('#loginpassword').fill('Mistral277');
     await page.getByRole('button', {name: "Log in"}).click()
 
+})
+
+test('demoblaze Check Login',async({page})=>{
+    // await page.goto("https://demoblaze.com/index.html")
+
+    // await page.getByRole('link',{name: "Log in"}).click()
+
+    // await page.locator('#loginusername').fill('gsbyrne@gmail.com');
+    // await page.locator('#loginpassword').fill('Mistral277');
+    // await page.getByRole('button', {name: "Log in"}).click()
+
+    await page.waitForTimeout(5000); // waits 5 seconds
 
     //Expect = |Assertion.
-    await expect(page.getByRole('button', {name: "Log in"}).isEnabled())
-    await expect(page.getByRole('button', {name: "Log out"}).isEnabled())
-    await expect(getByRole('link', { name: 'Welcome gsbyrne@gmail.com1' }))
+    await expect(page.getByRole('link', {name: "Log in"}).isHidden)
+    await expect(page.getByRole('link', {name: "Log out"}).isVisible())
+    await expect(page.getByRole('link', { name: 'Welcome gsbyrne@gmail.com1' }))
 
-
+    await page.pause()
 
     //check the box can accept max X chars? use the getattribute
-    console.log(page.locator('#loginusername').getAttribute('maxlength') )
+    //console.log(page.locator('#loginusername').getAttribute('maxlength') )
 
 
 
@@ -79,5 +92,12 @@ test('demoblaze login',async({page})=>{
 
 //  //await page.locator("nb-card").getByRole("button", {name: "Sign in"}).first().click()
 
-    await page.pause()
+    //await page.pause()
+})
+
+
+test('Click A phone on main page',async({page})=>{
+  await 
+
+    //await page.pause()
 })

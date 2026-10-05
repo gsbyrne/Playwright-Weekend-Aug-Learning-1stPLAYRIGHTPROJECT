@@ -1,43 +1,27 @@
-// I have to import test 9i.e. show you test as in test()
-// playweriting.test comes from "mode_module", which is one of the libraries.
-import { test, expect } from '@playwright/test';
+import { test } from '@playwright/test'
 
-//you can give any name, you have to use 
-// "()=>" - Anonymouns callback function, when I run this test case this function gets callback function container what th test cases should do.
+//Test case name tells us what the test case is about. 
+//The callback function contains what the test case should do. 
 
+//fixture
+//A fixture is something that Playwright prepares and provides to our test case when we need it.
+//There are other built-in fixtures like `browser` and `request`.
 
-//fixture... 
-// A fixture is someting that playwright prepare and provides to ou test case when we need it.
-// there are other build in fixure, like "borwser" and "request"
-test('my first test case',async({page})=>{
-    // "page " is a fixture like "{page}" above
-    // page is a fixture that playwright has already prepared.
-    await page.goto("https://playground.bondaracademy.com/pages/iot-dashboard")
-    //await is so it waits until its done.
-    //have to "async" with "await"
+//Whenever you see the word "promise" with any Playwright command, it means it's an asynchronous operation.
+//Asynchronous operation means this is non-blocking in nature.
 
+//Await means wait for this operation to complete before continuing. 
+test('my first testcase', async({page})=> {
+    await page.goto('https://playground.bondaracademy.com/pages/iot-dashboard')
 
     await page.getByText('Forms').click()
     await page.getByText('Form Layouts').click()
-    await page.getByText('Datepicker').click()
-
-    await page.pause()
 })
 
-
-test('naviage to datepicker page',async({page})=>{
-    // "page " is a fixture like "{page}" above
-    // page is a fixture that playwright has already prepared.
-    await page.goto("https://playground.bondaracademy.com/pages/iot-dashboard")
-    //await is so it waits until its done.
-    //have to "async" with "await"
+test('navigate to Datepicker page', async({page})=> {
+    await page.goto('https://playground.bondaracademy.com/pages/iot-dashboard')
 
     await page.getByText('Forms').click()
     await page.getByText('Datepicker').click()
-    
 })
-
-//So for every page you have to click on "Forms" etc.. so is a lot of replication
-// use HOOKS
-
 

@@ -1,117 +1,82 @@
 import { test, expect } from '@playwright/test';
 
-test('Login to demo blaze', async ({ page }) => {
-  
-    await page.goto('https://demoblaze.com//');
+//Whenever we see an HTML tag as `a` with an `href` attribute, it is a hyperlink.
 
-//when we see HTML tag with 'a' with a HREF it's a hyperlink.
-// how do I click on it?
-// Can use ID, or check if I can use getbylocator.
-    await page.locator('#login2')
-    await page.getByRole('link', {name: 'Log in' }).click()
-    //await page.getByRole('dialog', { name: 'Log in' }).locator('form').fill('ggggg')
-    await page.locator('#loginusername').fill('ggg')
-    await page.locator('#loginpassword').fill('ggg')
+test('login to demo Blaze', async ({ page }) => {
+    await page.goto('https://demoblaze.com/');
 
-    //bneflroe loggin in , logout should be higgen
-            //expect the logout should be hidden
-        await expect(page.getByRole('link',{name: 'Log out'})).toBeHidden
-        await page.getByRole('link', {name: 'Log in' }).click()
-        await expect(page.getByRole('link',{name: 'Log out'})).toBeVisible
+    page.locator('#login2')     //Priority#2
+    await page.getByRole('link', { name: 'Log in' }).click()    //Priority#1
 
+    await page.locator('#loginusername').fill('piyushgupta84')
+    await page.locator('#loginpassword').fill('123456')
 
+    const logoutLink = page.getByRole('link', { name: 'Log out' })
 
+    //Before logging in, logout should be hidden. 
+    await expect(logoutLink, 'Verify that the logout link is not present').toBeHidden()
+    await page.getByRole('button', { name: 'Log in' }).click()
+    await expect(logoutLink, 'Verify that the logout link is now present').toBeVisible()
 
-await page.pause()
+    //After logging in, logout should be visible. 
 
+    await page.pause()
 })
 
+//v1
+test('Click on Sony Vaio i5 product', async ({ page }) => {
+    await page.goto('https://demoblaze.com/')
 
-
-
-test('Click on Sony vaio i5', async ({ page }) => {
-
-    // this will be a number of products together..
-    // you just need to select which one you want.
-    // this will make it scalable.
-
-    const products = page.locator('h4.card-title')//this gives the collection.
-
-    await page.goto('https://demoblaze.com//');
-
-
-    //await page.getByText('Sony vaio i5').click()
-    // Now using the location, I select the numer I want.
-    
-    //await page.locator(products)
-
-    // this will wait 3 seconds, but no a good idea
-    // But tomorrow it might take 5 secods to load.
-    // How do we make playwright wait for just the right time, not hardcoded.
-    // i.e. only when the page has loaded. 
-    await page.waitForTimeout(9000)
-
-    // instead of using waitForTimeout, use
-    //await page.locator('use whatever the main page you can e.g. ') .waitFor
-
-    //await (products.count())// this should give me the list of all. 
-
-    console.log(await products.count())
-
-await page.pause()
-
+    await page.getByText('Sony vaio i5').click()
 })
 
+/*
+A locator is not good because it works today. 
+A locator is good because it continues to work even
+after the application changes in the future.
 
-
-
-test('Click on Sony vaio i5 Optonised', async ({ page }) => {
-
-    // this will be a number of products together..
-    // you just need to select which one you want.
-    // this will make it scalable.
-
-    await page.goto('https://demoblaze.com//');
-    const products = page.locator('h4.card-title')//this gives the collection.
-
-    //using the filter it will look though the products to find "Sony vaio i5" and click on it.
-    await products.filter({hasText: 'Sony vaio i5'}).click()
-
-await page.pause()
-
-})
-
-
-
-
-// Quick Guide
-// These are the recommended built-in locators.
-
-// page.getByRole() to locate by explicit and implicit accessibility attributes.
-// page.getByText() to locate by text content.
-// page.getByLabel() to locate a form control by associated label's text.
-// page.getByPlaceholder() to locate an input by placeholder.
-// page.getByAltText() to locate an element, usually image, by its text alternative.
-// page.getByTitle() to locate an element by its title attribute.
-// page.getByTestId() to locate an element based on its data-testid attribute (other attributes can be configured).
-
-
-
-
-
-
-
-
-/* A locator is good even if it works after the application has changed 
-A strong resilliant locator.
-
-If the marketing team change the name, and so the text changes, it will no longer work.
-
-
-But there are 9 seperate lineks, i.e. Samsun glaxy s6 and then the next for all the proeucts, so it's the same but the data chagnes.
-There is a pattern, if I can find the common structure, and then select based on that?!!!
-
-
-
+As an automation engineer, we should always ask one
+question: "Will this locator still work 6 months from now?"
 */
 
+//Common Locator strategy
+//Beginners search for elements.
+//Experienced automation engineers search for patterns. 
+test('Click on Sony Vaio i5 product - optimized', async ({ page }) => {
+    await page.goto('https://demoblaze.com/')
+
+    //I am getting a collection here.
+    //Instead of one product, I now have all the products together.
+    const products = page.locator('h4.card-title')
+
+    //It is a hard-coded wait for 3 seconds. 
+    //A fixed width is sometimes too long and sometimes too short. 
+    //The real puzzle is: can we make Playwright wait only as long as required?
+    //await page.waitForTimeout(3000)
+
+    //Wait until this product container is available. 
+    await page.locator('#tbodyid').waitFor()
+
+    const optionsCount = await products.count()     //9
+
+    for(let i = 0; i < optionsCount; i++){
+        const text = await products.nth(i).innerText()
+
+        if(text === 'Sony vaio i5'){
+            await products.nth(i).click()
+            break
+        }
+    }
+})
+
+//Instead of using a for loop, try running the same code with a for-of loop.
+
+test('Click on Sony Vaio i5 product - optimized1', async ({ page }) => {
+    await page.goto('https://demoblaze.com/')
+
+    const products = page.locator('h4.card-title')
+
+    //Out of the nine matches, give me only that match that contains this text: Sony Vaio i5.
+    //Click on it. 
+    await products.filter({hasText: 'Sony vaio i5'}).click()
+})

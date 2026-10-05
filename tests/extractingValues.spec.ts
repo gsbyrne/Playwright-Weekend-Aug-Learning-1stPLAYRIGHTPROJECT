@@ -1,21 +1,18 @@
 import { test, expect } from '@playwright/test';
 
-test('extracting values', async ({ page }) => {
-  await page.goto('https://playground.bondaracademy.com/pages/iot-dashboard');
+test('Extracting values', async ({ page }) => {
+    await page.goto('https://playground.bondaracademy.com/pages/forms/layouts');
 
-  //get to the main area you want.  
-  //const basicFormBtm = page.locator('nb-card', {hasNotText: 'Basic form'})
-    // how search for it.
-    //OR
+    // const basicFormBtn = page.locator('nb-card', {hasText: 'Basic form'}).locator('button')
+    const basicFormBtn = page.locator('nb-card', {hasText: 'Basic form'}).getByRole('button')
 
-const basicFormBtm = page.locator('nb-card', {hasNotText: 'Basic form'}).getByRole('button')
+    console.log(await basicFormBtn.textContent())       //Submit
+    console.log(await basicFormBtn.innerText())         //SUBMIT
 
-//textContent: returns whatever you see in the HTML, (black, no matter what )
-console.log(await basicFormBtm.textContent())
-//innertext = give me the actual text the user sees.
-console.log(await basicFormBtm.innerText())
+    //textContent() - Before styling
+    //It returns exactly what is in the HTML, no matter how it is styled or displayed. 
 
-
-  // Expect a title "to contain" a substring.
-  await expect(page).toHaveTitle(/Playwright/);
-});
+    //innerText() - After styling
+    //It returns what is actually rendered on the screen.
+    //Give me the text the user actually sees. 
+})

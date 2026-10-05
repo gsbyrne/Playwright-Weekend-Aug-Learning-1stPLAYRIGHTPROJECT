@@ -7,8 +7,6 @@ test('has title', async ({ page }) => {
   await expect(page).toHaveTitle(/Playwright/);
 });
 
-
-
 test('get started link', async ({ page }) => {
   await page.goto('https://playwright.dev/');
 
@@ -18,12 +16,10 @@ test('get started link', async ({ page }) => {
   // Expects page to have a heading with the name of Installation.
   await expect(page.getByRole('heading', { name: 'Installation' })).toBeVisible();
 
-
-await page.pause()
-
+  // await page.pause()
 });
 
-test.only('get started link 2', async ({ page }) => {
+test.only('checkout functionality', async ({ page }) => {
   await page.goto('https://playwright.dev/');
 
   // Click the get started link.
@@ -32,7 +28,5 @@ test.only('get started link 2', async ({ page }) => {
   // Expects page to have a heading with the name of Installation.
   await expect(page.getByRole('heading', { name: 'Installation' })).toBeVisible();
 
-
-await page.pause()
-
+  await page.pause()
 });
