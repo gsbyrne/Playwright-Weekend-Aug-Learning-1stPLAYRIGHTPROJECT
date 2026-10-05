@@ -97,7 +97,7 @@ test('demoblaze Check Login',async({page})=>{
 
 
 test('Click A phone on main page',async({page})=>{
-  await 
+  await expect(page.getByRole('link', {name: 'Nokia lumia 1520'}))
 
     //await page.pause()
 })
